@@ -1,6 +1,12 @@
 package com.codeclan.employee.employeeService.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.Cascade;
+
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="employees")
@@ -23,16 +29,51 @@ public class Employee {
     @Column(name="email_address")
     private String emailAddress;
 
-    public Employee(String name, int age, int employeeNumber, String emailAddress){
+    @ManyToOne
+    @JoinColumn(name = "department_id", nullable = false)
+    @JsonIgnoreProperties({"employee"})
+    private Department department;
+
+    @ManyToMany
+    @JsonIgnoreProperties({"projects"})
+    @Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
+    @JoinTable(
+            name = "employees_projects",
+            joinColumns = { @JoinColumn(
+                    name = "employee_id",
+                    nullable = false,
+                    updatable = false
+            )},
+            inverseJoinColumns = { @JoinColumn(
+                    name = "project_id",
+                    nullable = false,
+                    updatable = false
+            )}
+    )
+
+    private List<Project> projects;
+
+
+    public Employee(String name, int age, int employeeNumber, String emailAddress, Department department){
         this.name = name;
         this.age = age;
         this.employeeNumber = employeeNumber;
         this.emailAddress = emailAddress;
+        this.department = department;
+        this.projects = new ArrayList<>();
 
     }
 
     public Employee(){
 
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
     }
 
     public Long getId() { // NEW
@@ -75,5 +116,9 @@ public class Employee {
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    public void addProject(Project project) {
+        projects.add(project);
     }
 }
